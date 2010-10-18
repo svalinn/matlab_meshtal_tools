@@ -1,4 +1,4 @@
-function numTal = read_tallies (inFile, numFiles, saveByFile, fStart)
+function numTal = read_tallies (inFile, fStart, numFiles, saveByFile )
 % read ins meshtal files and saves them as a coordinate object.  if
 % saveByFile == 1 then the tallies in the same file will be saved as an
 % array of CoordinateSystems object.  If saveByFile ~= 1 then the each 
@@ -14,7 +14,7 @@ for fIndex = fStart: (numFiles + fStart - 1);
         nps = 0;
         Tot = 1; % boolean for knowing whether to skip a line after this tally
         index = num2str(fIndex);
-        fName = [inFile,index];
+        fName = strcat(inFile, index);
         fid = fopen(fName);
         while (~feof(fid))  
             com = 1;
@@ -74,13 +74,13 @@ for fIndex = fStart: (numFiles + fStart - 1);
             %determine the particle type
 %             disp(['second line ', line]);
             n = findstr(line,'neutron');
-            e = findstr(line, 'electron');
+            p = findstr(line, 'photon');
             if(isempty(n)==0)
                 pType = 1; %particle is a neutron
-            elseif (isempty(e)==0)
-                pType = 2; %particle is an electron
+            elseif (isempty(p)==0)
+                pType = 2; %particle is an photon
             else
-                pType = 3; %particle is a photon
+                pType = 3; %particle is a electon
             end
             
             %determine the coordinate system of the mesh
@@ -106,7 +106,6 @@ for fIndex = fStart: (numFiles + fStart - 1);
                 org = textscan(fid, '%*s %f %f %f ',1,...
                                'delimiter', ', ');
                 origin = [org{1},org{2},org{3}];
-                disp('in PTR');
                 %eats up first two words of the nest line so coor bounds
                 %can be read in
                 sd12 = textscan(fid, '%s %*s',1);
@@ -118,11 +117,11 @@ for fIndex = fStart: (numFiles + fStart - 1);
             %should be set up so 
             fline1=fgetl(fid);
             
-            %sets up array for actaully coordinate positions
+            %sets up array for actaul coordinate positions
             el1 = strread(fline1);
             elem1 = zeros(1,length(el1)-1);
             for i = 1 : length(elem1)
-                 elem1(i) = el1(i) + (el1(i+1) - el1(i))/2;
+                 elem1(i) = roundn(el1(i) + (el1(i+1) - el1(i))/2,-2);
             end
             numElem1 = length(elem1);
                 
@@ -132,7 +131,7 @@ for fIndex = fStart: (numFiles + fStart - 1);
             el2 = strread(fline2);
             elem2 = zeros(1,length(el2)-1);
             for i = 1 : length(elem2)
-                 elem2(i) = el2(i) + (el2(i+1) - el2(i))/2;
+                 elem2(i) = roundn(el2(i) + (el2(i+1) - el2(i))/2,-2);
             end
      %might need to put in if statement like for num3 if both
      %angles have extra word after diretion in input file
@@ -148,11 +147,15 @@ for fIndex = fStart: (numFiles + fStart - 1);
             el3 = strread(fline3);
             elem3 = zeros(1,length(el3)-1);
             for i = 1 : length(elem3)
-                 elem3(i) = el3(i) + (el3(i+1) - el3(i))/2;
+                if (coorSys == 2)
+                    elem3(i) = roundn(el3(i) + (el3(i+1) - el3(i))/2,-3);
+                else
+                    elem3(i) = roundn(el3(i) + (el3(i+1) - el3(i))/2,-2);
+                end
             end
             numElem3 = length(elem3);
             numElem = numElem1 * numElem2 * numElem3;
-            %added code to see how many energy bins are
+            %added code to see how many energy bins there are
             sd12 = textscan(fid, '%*s %*s %*s',1);
             fline4 = fgetl(fid);
             el4 = strread(fline4);
@@ -168,9 +171,10 @@ for fIndex = fStart: (numFiles + fStart - 1);
             eng = sd12{1};
             
             %sets up coor, data, and err for coorsys objects
-            if (strcmpi(eng, 'Energy') == 1)
+            if strcmpi(eng, 'Energy') == 1 
+               
                 %need to account for extra energy column if particle is a
-                %photon
+                %photon or if it is a neutron with an energy mesh
                 numElemEng = numElem1 * numElem2 * numElem3 * numElem4;
                 sd5 = textscan(fid, '%f %f %f %f %f %f %*[^\n]', numElemEng,  ...
                                 'CollectOutput', 1);
@@ -184,31 +188,34 @@ for fIndex = fStart: (numFiles + fStart - 1);
 
                 result = sd(:,5);
                 err = sd(:,6);     
-                
-                % check to see if the energy bins are totaled
-                
                 sd5 = textscan(fid, '%s %f %f %f %f %f %*[^\n]', numElem, ...
                                 'CollectOutput', 1);
-                sd = sd5{2};
-                sd6 = sd5{1};
-%                 disp(size(sd));disp(sd6(1,1));
-%                 disp('sd5');disp(sd5);
-                if strcmpi(sd6(1,1), 'Total') == 1
-                    Tot = 1;
-%                     disp(['tot = ', num2str(Tot)]);
-                    totEnd = length(A) + numElem;
+                % check to see if the energy bins are totaled
+                if ~feof(fid)
                     
-                    A(length(A)+1:totEnd) = sd(:,1);
-                    B(length(B)+1:totEnd) = sd(:,2);
-                    C(length(C)+1:totEnd) = sd(:,3);
+                    sd = sd5{2};
+                    sd6 = sd5{1};
+%                     disp(size(sd));
+%                     disp('sd6');disp(sd6);
+%                     disp('sd5');disp(sd5);
+                    if strcmpi(sd6(1,1), 'Total') == 1
+                        Tot = 1;
+%                       disp(['tot = ', num2str(Tot)]);
+                        totEnd = length(A) + numElem;
                     
-                    result(length(result)+1:totEnd) = sd(:,4);
-                    err(length(err)+1:totEnd) = sd(:,5);
+                        A(length(A)+1:totEnd) = sd(:,1);
+                        B(length(B)+1:totEnd) = sd(:,2);
+                        C(length(C)+1:totEnd) = sd(:,3);
                     
-%                     disp(size(A));
+                        result(length(result)+1:totEnd) = sd(:,4);
+                        err(length(err)+1:totEnd) = sd(:,5);
+                    
+%                        disp(size(A));
+                    end
                 end
             elseif numElem4 > 2
-                % for some reason no energy column but energy bins
+                % for some reason no energy column but energy bins for
+                % neutron mesh tallies
                 numElemEng = numElem1 * numElem2 * numElem3 * numElem4;
                 sd5 = textscan(fid, '%f %f %f %f %f %*[^\n]', numElemEng,  ...
                                 'CollectOutput', 1);
@@ -274,21 +281,20 @@ for fIndex = fStart: (numFiles + fStart - 1);
             coordinates(:,2) = B;
             coordinates(:,3) = C;
             
-            %note that talType is not supported in this version and is just
-            %set to 4 by defult.  if need it is in the other classes and
-            %code can be added to support this varible in this file
             if(coorSys == 1)
                 meshes(talNum) = XYZCoorSys(coordinates, result, err,...
                    fName, numElem, pType, nps, MCNP5TallyNum, talNum,...
-                    comment, elem1, elem2, elem3, elem4);
+                    comment, elem1, elem2, elem3, elem4, el1, el2, el3 ,el4);
             elseif(coorSys == 2)
                 meshes(talNum) = CylCoorSys(coordinates, result, err,...
                     fName, numElem, pType, nps, MCNP5TallyNum, talNum,...
-                    comment, elem1, elem2, elem3, elem4, origin, axis);
+                    comment, elem1, elem2, elem3, elem4, origin, axis,...
+                    el1, el2, el3, el4);
             else
                 meshes(talNum) = SphCoorSys(coordinates, result, err,...
                     fName, numElem, pType, nps, MCNP5TallyNum, talNum,...
-                    comment, elem1, elem2, elem3, elem4, origin);
+                    comment, elem1, elem2, elem3, elem4, origin,...
+                    el1, el2, el3, el4);
             end
 
             sd12 = textscan(fid,'%*d',1); %skip extra line after each tally

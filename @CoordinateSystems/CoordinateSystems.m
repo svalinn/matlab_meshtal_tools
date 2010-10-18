@@ -11,21 +11,25 @@ classdef CoordinateSystems
         err = [];
         fName ='';
         nElements = []; 
-        particleType = []; %1=neutron 2=proton 3=photon
+        particleType = []; %1=neutron 2=photon 3=electron
         nps = []; %number of histories ran
         MCNPtallyNum = []; 
         nTallies = []; 
-        tallyType = []; 
         comment = ''; %comment that was at the beginning of the file
         coorBinsA = [];
         coorBinsB = [];
         coorBinsC = [];
         energyBins = [];
+        coorBoundsA = [];
+        coorBoundsB = [];
+        coorBoundsC = [];
+        engBounds = [];
     end
     
     methods
         function obj = CoordinateSystems(coor, datas, errs, fileName, nElem,...
-            pType,nPS,MCNPtallNum, numTalls, com, el1, el2, el3, el4)
+            pType,nPS,MCNPtallNum, numTalls, com, el1, el2, el3, el4, eb1, ...
+            eb2, eb3, eb4)
             
             if nargin > 0
                 obj.coordinates = coor;
@@ -42,6 +46,10 @@ classdef CoordinateSystems
                 obj.coorBinsB = el2;
                 obj.coorBinsC = el3;
                 obj.energyBins = el4;
+                obj.coorBoundsA = eb1;
+                obj.coorBoundsB = eb2;
+                obj.coorBoundsC = eb3;
+                obj.engBounds = eb4;
                 
             end
 
@@ -51,7 +59,7 @@ classdef CoordinateSystems
             %calculates the weighted averages the data and err of two CoordinateSystem
             %objects and returns the average (a corrdinateSystems oject)
              
-            if(isempty(coor1.data)==1) 
+            if(isempty(coor2.data)==1) 
                 total = coor1;
                 
             elseif(isempty(coor1.data)==1)
@@ -134,8 +142,9 @@ classdef CoordinateSystems
           multplied.data = coor.data .* mult;
        end
         
-       function lPercDiff = LargePercentDiffs(obj)
-           r = find(obj.data >= .1);
+       %finds where the data is greater than some number cutOff
+       function lPercDiff = LargePercentDiffs(obj, cutOff)
+           r = find(obj.data >= cutOff);
            lPercDiff = zeros(length(r),5);
            for i = 1 : length(r)
                lPercDiff(i,1) = obj.coordinates(r(i),1);

@@ -56,7 +56,7 @@ while (option ~= 0)
         
         disp(' ');
         
-        read_tallies(Name, nFiles, style, beg);
+        read_tallies(Name, beg, nFiles, style);
         
         disp(' ');
 
@@ -204,9 +204,11 @@ while (option ~= 0)
                     
                     load([name,num2str(j),'tally.mat']);
                     average = average.AverageResults(tally);
+                    disp(average);
                     clear tally;
                 end
                 ave(h) = average;
+                disp(ave);
                 clear tally average;
             end
             tally = ave;

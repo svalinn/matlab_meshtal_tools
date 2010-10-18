@@ -1,0 +1,67 @@
+# MCNP5_script.m example input file
+#
+# read reads in meshtal file into Matlab so other operations can be performed
+#
+# Note: files must be indexed even if just one file in format <root_name><file_index> (ie meshtal1 meshtal2)
+# Note: do not save after files if there are a large number of meshtallies in each file
+# Note: keep the save after option the same for all commands (if blank in any command save after file is assumed)
+#
+# Format: "read" <rootfile_name> <starting_file_index> <number_of_files> <1_save_after_file>
+#
+read meshtal 1 1  1
+
+# add adds all the specified tallies together. Note all the tallies in 
+# the specified positions for all the files will be added.
+#
+# Format: "add" <num_of_files> <root_file_names_with_index> <num_of_tallies_from_each_file> <tally_position_in_files> <outfile_root_name> <1_for_saved_by_file>
+#
+add 1 meshtal1 2 1 2 addedmeshtal 1 
+
+# average averages the tallies across the files specified
+# ie the first tally of all the files are averaged and saved as the 
+#     first tally in the output file and so on
+#
+# Format: "average" <root_file> <starting_file_index> <number_of_files> <outfile_root_name> <1_for_saved_by_file>
+#
+average meshtal 1 2 avgmeshtal 1 
+
+# mult takes a constant and mults all the tallies from all the files specified by the constant
+# Note: the output file is saved as "'mult'<root_file_name_with_index>'tally.mat'" if a file had a tally
+#  already multiplied by a constant and is saved as "'mult'<root_file_name_with_index>'tally.mat'" then 
+#  it will be saved	as the same thing the next time it is multiplied by a constant
+#
+# Format: "mult" <constant> <num_files> <root_file_names_with_index> <num_tallies> <tally_positions> <1_for_saved_by_file>
+#
+mult 5 2 avgmeshtal addedmeshtal 2 1 1 1
+mult 10 1 multavgmeshtal 1 1 1
+
+# Percent difference takes the percent difference between a benchmark file and the rest of the files spcified
+# for the tallies specified
+#
+# Note: the operation is (tally-bench)/bench
+# Note: after the percent difference is taken from each tally in a single file, the file will be saved
+#       as 'percent'<root_file_names_with_index>'tally.mat'
+#
+# Format: "percent" <bench_file> <num_files> <root_files_names_with_index> <num_tallies> <tally_positions> <1_for_saved_by_file>
+percent avgmeshtal 2 addedmeshtal multavgmeshtal 1 1 1
+
+# Write writes out the new data in the same format as MCNP5
+# Note: write_option is 1 to add to end of outfile, 2 to overwrite outfile, anything if outfile does not exist
+# Format: "write" <outfile> <root_file_name_with_index> <starting_tally_position> <num_tallies> <write_option> <1_for_saved_by_file>
+write newMesh addedmeshtal1 1 1 1 1
+
+# There are three plotting functions for cartesian and cylindrical coordinate systems.
+# For cartesian, you can plot an X,Y, or Z slice of the mesh.  The command for these are the same just 
+# replacing Y or Z for X when needed
+# Note: if there are no energy bins use '0' for the energy variable 
+# Note: the x_position must be where the data is tallied not on a mesh boundary
+# Format: "xslice" <root_file_with_index> <tally_num> <x_position> <energy> <1_for_saved_by_file>
+# ex xslice meshtal1 2 0.95 0 1
+
+# For cylindrical coordinates, you can plot Z, theta, and Theta-Z slices.  The Z and theta slice plots
+# have the same format as the X,Y,Z plots (theta is th).  The ThZ slice takes an extra argument in the form shon below
+# Note: theta must be between 0 and 0.5, and it will be rotated to give full slice from -r to r
+# Format: "thzslice" <root_file_with_index> <tally_num> <theta> <Z_position> <energy> <1_for_saved_by_file>
+thslice multavgmeshtal 1 0.188 0 1
+thzslice newMesh 1 0.188 1.83 0 1 
+zslice percentaddedmeshtal1 1 1.83 3 
