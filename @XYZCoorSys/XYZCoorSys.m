@@ -191,7 +191,7 @@ classdef XYZCoorSys < CoordinateSystems
           offset = (eng -1) * obj.nElements;
           
           for j = 1 : length(obj.coorBinsB)
-              Y(j,:) = obj.coorBinsA(j); % vector for R pos 
+              Y(j,:) = obj.coorBinsB(j); % vector for R pos 
                
           end
           for k = 1 : length(obj.coorBinsC)
@@ -201,11 +201,14 @@ classdef XYZCoorSys < CoordinateSystems
           
           % set up data now
           dat = zeros(size(Z));
-          row = offset + (Xcon - 1) * length(obj.coorBinsB) * length(obj.coorBinsC);
-          for i = 1 : (length(obj.coorBinsB) * length(obj.coorBinsC))
-                
-              dat(i,j) = obj.data(row + j);
-              
+         
+          for i = 1 : (length(obj.coorBinsB) )
+	      row = offset + (Xcon - 1) *  length(obj.coorBinsB) * length(obj.coorBinsC) ...
+                           + (i-1)*length(obj.coorBinsC);
+              for j = 1 : length(obj.coorBinsC)
+                 dat(i,j) = obj.data(row + j);
+              end              
+
           end
           [r,c] = size(dat);
           if (r == 1 || c == 1)
