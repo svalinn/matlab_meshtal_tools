@@ -1,7 +1,7 @@
 MATLAB files used to plot, add, and average meshtal files from MCNP.
 *Created by Patrick Snouffer Spring 2008
 *Updated summer 2009
-*Modified to allow the use of an input deck instead of direct user input Fall 2010
+*Modified to allow the use of an input script instead of direct user input Fall 2010
 
 This program reads in XYZ, cylindrical, and spherical(not tested yet) meshtal files that
 are named in the format [root_name][index] (ie meshtal2).  
@@ -13,17 +13,17 @@ MCNP5_script.m - MCNP5_script('s', 'type') - takes a scripts that supplies
 								 plotted, or written to a different file.  See the 
 								 example_input.txt file for further deatils of the structure 
 								 of the input file.  The commands can be run without an input 
-								 deck by setting type = 'command'
+								 script by setting type = 'command'
 
-							Usage: with an input deck
-										MCNP5_script('input_deck_name','file')
-												-where the input deck has all of the commands you 
+							Usage: with an input script
+										MCNP5_script('input_script_name','file')
+												-where the input script has all of the commands you 
 												 want to run
 									  
 										single command
 										MCNP5_script('single_command','command')
 										    -where single_command is any line that is valid in 
-												 the input deck
+												 the input script
 
 							read - reads in meshtal file and saves it either after each 
 							       each file or tally (for large files that might over 

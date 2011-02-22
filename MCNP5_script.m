@@ -35,7 +35,7 @@ function MCNP5_script(s, type)
 end
 function usage()
     disp('ERROR: bad function call');
-    disp('Usage: MCNP5_script(''input_deck_name'',''file'') or');
+    disp('Usage: MCNP5_script(''input_script_name'',''file'') or');
     disp('       MCNP5_script(''single_command'',''command'')');
 end
 function sc(first, last)
