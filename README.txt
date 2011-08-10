@@ -136,3 +136,28 @@ MCNP5_man.m - promts user with a menu asking whether the user wants to
 							write - writes specified tallies to a new file
 
 
+*** Comments regarding Russell Gocht's additions, 10 August 2011 *** 
+
+Steve,
+I have attached the two files I changed to add the 'trim' command.
+These changes are relatively self-contained within these two files.
+An example use of this command is:
+
+read meshtal 2 1 1
+# trim [dA dB dC] filename filename-start-index numfiles tally-number 1
+trim -23.9522  47.2694 -8.4074  53.0608 -100 100 meshtal 1 2 1 1
+zslice trimmeshtal1 1 19.05 6.250E-07 1
+zslice trimmeshtal2 1 19.05 6.250E-07 1
+percent trimmeshtal1 1 trimmeshtal2 1 1 1
+zslice percenttrimmeshtal2 1 19.05 6.250E-07 1 FluxShiftFTcadmium
+
+I attempted to make it analogous to the 'mult' command.  It prepends
+'trim' to the resulting tally name.
+
+The problem is that trim runs slow.  I am pretty sure that it could be
+made faster by changing the loop which copies the trimmed mesh.  I
+think the for loop could be replaced with suitable matlab matrix
+ranges.  However, I do not run trim very often so this task is not a
+high priority right now.
+
+

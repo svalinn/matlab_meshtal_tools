@@ -1,4 +1,4 @@
-function MCNP5_script(s, type)
+ function MCNP5_script(s, type)
 % Created by Patrick Snouffer Spring 2008
 % Uses the classes CoordinateSystems, XYZCoorSys, CylCoorSys, and SphCoorSys
 % It also uses the function read_tallies.  This script reads in MCNP5 mesh
@@ -20,12 +20,12 @@ function MCNP5_script(s, type)
     elseif strcmpi(type,'file')==1
         fid = fopen(s);
 
-
         while(~feof(fid))
             line = fgetl(fid);
             [word, last] = strtok(line);
             sc(word, last);
         end
+        fclose(fid);
     elseif strcmp(type,'command')
         [word, last] = strtok(s);
         sc(word, last);
@@ -193,6 +193,33 @@ function sc(first, last)
 
         %end of averaging case
 
+        case 'trim'
+            disp('Trimming tallies');
+            sd = textscan(last, '%f %f %f %f %f %f %s %f %f %f %f');
+            dA = [sd{1} sd{2}];
+            dB = [sd{3} sd{4}];
+            dC = [sd{5} sd{6}];           
+            rootF  = sd{7};
+            startF = sd{8};
+            numF = sd{9};
+            talPos = sd{10};
+            style = sd{11};
+            
+            if style ~=1
+                disp('   NOT SUPPORTED FOR STYLE ~= 1');               
+            else
+                for j = startF : (numF + startF-1)
+                    load([rootF{1},num2str(j),'tally.mat']);
+                    tally(talPos) = tally(talPos).TrimMesh(dA,dB,dC);
+                    save(['trim',rootF{1},num2str(j),'tally.mat'], 'tally');
+                    clear tally;
+                end
+                  
+            end
+            clear numF rootF talPos style startF sd dA dB dC
+
+        %end of trimming case
+        
         case 'mult'
             disp('Multipling tallies by constant');
             [sd, pos] = textscan(last, '%f %f');
@@ -309,7 +336,6 @@ function sc(first, last)
 
                 for j = 1 : numFiles
                     load([fileNames{j},'tally.mat']);
-
                     for i = 1 : numTallies
                         tally(i)=tally(i).PercentDiff(bench(i));
                         if j == 1 
@@ -389,7 +415,7 @@ function sc(first, last)
             if res == 0
                 disp(['Tally ', num2str(talNum), ' from file ', fName{1}, ' was not plotted']);
                 disp(' ');
-            end            
+            end    
             clear sd fName talNum th z energy style res            
 
         case 'thslice'
@@ -417,26 +443,30 @@ function sc(first, last)
             clear sd fName talNum th energy style res 
 
         case 'zslice'
-            sd = textscan(last, '%s %f %f %f %f');
+            sd = textscan(last, '%s %f %f %f %f %s');
             fName = sd{1};
             talNum = sd{2};
             z = sd{3};
             energy = sd{4};
             style = sd{5};
+            title = sd{6};
+            
+            if (isempty(title))
+                title = ['Radial Flux Profile, Z=',num2str(z),' cm (n/cm^2*s)'];
+            end
 
             if style ~=1
                 load([fName{1},'tally',num2str(talNum),'.mat']);
-                res = tally.plotZSlice(z,energy);
+                res = tally.plotZSlice(z,energy, title);
             else
                 load([fName{1},'tally.mat']);
-                res = tally(talNum).plotZSlice(z,energy);
+                res = tally(talNum).plotZSlice(z,energy, title);
             end
             if res == 0
                 disp(['Tally ', num2str(talNum), ' from file ', fName{1}, ' was not plotted']);
                 disp(' ');
-            end            
+            end 
             clear sd fName talNum z energy style res
-
         case 'xslice'
             sd = textscan(last, '%s %f %f %f %f');
             fName = sd{1};
