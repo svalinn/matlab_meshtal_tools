@@ -137,6 +137,7 @@ MCNP5_man.m - promts user with a menu asking whether the user wants to
 
 
 *** Comments regarding Russell Gocht's additions, 10 August 2011 *** 
+    Email contact: russell.gocht@gmail.com 
 
 Steve,
 I have attached the two files I changed to add the 'trim' command.
